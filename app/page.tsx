@@ -4,9 +4,9 @@ import { useEffect, useState } from 'react';
 import { Header } from '@/components/Header';
 import { LocationGrid } from '@/components/LocationGrid';
 import { Pagination } from '@/components/Pagination';
-import { getLocations, deleteLocation } from '@/lib/api';
+import { getLocations, deleteLocation, deleteAllLocations } from '@/lib/api';
 import { LocationRecord } from '@/lib/types';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, Trash2, Loader2, AlertTriangle } from 'lucide-react';
 
 export default function Home() {
   const [records, setRecords] = useState<LocationRecord[]>([]);
@@ -21,6 +21,8 @@ export default function Home() {
     hasMore: false,
   });
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+  const [isDeletingAll, setIsDeletingAll] = useState(false);
+  const [showDeleteAllConfirm, setShowDeleteAllConfirm] = useState(false);
 
   const fetchLocations = async () => {
     setLoading(true);
@@ -40,15 +42,6 @@ export default function Home() {
 
   useEffect(() => {
     fetchLocations();
-  }, [limit, offset]);
-
-  // Auto-refresh every 30 seconds
-  useEffect(() => {
-    const interval = setInterval(() => {
-      fetchLocations();
-    }, 30000);
-
-    return () => clearInterval(interval);
   }, [limit, offset]);
 
   const handleLimitChange = (newLimit: number) => {
@@ -75,11 +68,32 @@ export default function Home() {
         ...prev,
         total: Math.max(0, prev.total - 1),
       }));
-      // Refresh to get updated data
-      fetchLocations();
     } catch (error) {
       console.error('Error deleting location:', error);
       alert(error instanceof Error ? error.message : 'Kayıt silinirken bir hata oluştu');
+      // Refresh on error to sync state
+      fetchLocations();
+    }
+  };
+
+  const handleDeleteAll = async () => {
+    setIsDeletingAll(true);
+    try {
+      await deleteAllLocations();
+      setShowDeleteAllConfirm(false);
+      // Clear all records
+      setRecords([]);
+      setPagination((prev) => ({
+        ...prev,
+        total: 0,
+      }));
+      // Refresh to get updated state
+      fetchLocations();
+    } catch (error) {
+      console.error('Error deleting all locations:', error);
+      alert(error instanceof Error ? error.message : 'Tüm kayıtlar silinirken bir hata oluştu');
+    } finally {
+      setIsDeletingAll(false);
     }
   };
 
@@ -122,6 +136,49 @@ export default function Home() {
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
               Yenile
             </button>
+            {pagination.total > 0 && (
+              <>
+                {!showDeleteAllConfirm ? (
+                  <button
+                    onClick={() => setShowDeleteAllConfirm(true)}
+                    disabled={loading || isDeletingAll}
+                    className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
+                    aria-label="Tümünü sil"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Tümünü Sil
+                  </button>
+                ) : (
+                  <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-md p-2">
+                    <AlertTriangle className="w-4 h-4 text-red-600 shrink-0" />
+                    <span className="text-xs text-red-700 font-medium">
+                      {pagination.total} kayıt silinecek. Emin misiniz?
+                    </span>
+                    <button
+                      onClick={handleDeleteAll}
+                      disabled={isDeletingAll}
+                      className="px-3 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1"
+                    >
+                      {isDeletingAll ? (
+                        <>
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                          Siliniyor...
+                        </>
+                      ) : (
+                        'Evet, Sil'
+                      )}
+                    </button>
+                    <button
+                      onClick={() => setShowDeleteAllConfirm(false)}
+                      disabled={isDeletingAll}
+                      className="px-3 py-1 bg-gray-200 text-gray-700 rounded text-xs hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      İptal
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
           </div>
         </div>
 

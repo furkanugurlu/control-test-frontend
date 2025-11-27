@@ -54,10 +54,10 @@ export function LocationCard({ record, onDelete }: LocationCardProps) {
 
       {/* Card Body */}
       <div className="mb-4">
-        {result_data.latitude && result_data.longitude ? (
+        {result_data.coords?.latitude && result_data.coords?.longitude ? (
           <CoordinateDisplay
-            latitude={result_data.latitude}
-            longitude={result_data.longitude}
+            latitude={result_data.coords.latitude}
+            longitude={result_data.coords.longitude}
           />
         ) : (
           <div className="mb-4 text-gray-400 italic text-sm">
@@ -74,6 +74,36 @@ export function LocationCard({ record, onDelete }: LocationCardProps) {
             </div>
           </div>
         )}
+
+        {/* Additional Info Badges */}
+        <div className="flex flex-wrap gap-2 mb-4">
+          {result_data.battery?.level !== undefined && (
+            <div className="flex items-center gap-1 px-2 py-1 bg-gray-100 rounded text-xs">
+              <span className="text-gray-600">Batarya:</span>
+              <span className={`font-semibold ${
+                result_data.battery.level > 0.5 ? 'text-green-600' :
+                result_data.battery.level > 0.2 ? 'text-yellow-600' : 'text-red-600'
+              }`}>
+                {(result_data.battery.level * 100).toFixed(0)}%
+              </span>
+            </div>
+          )}
+          {result_data.is_moving !== undefined && (
+            <div className="flex items-center gap-1 px-2 py-1 bg-gray-100 rounded text-xs">
+              <span className={`font-semibold ${
+                result_data.is_moving ? 'text-green-600' : 'text-gray-600'
+              }`}>
+                {result_data.is_moving ? 'Hareketli' : 'Hareketsiz'}
+              </span>
+            </div>
+          )}
+          {result_data.coords?.accuracy && (
+            <div className="flex items-center gap-1 px-2 py-1 bg-gray-100 rounded text-xs">
+              <span className="text-gray-600">Doğruluk:</span>
+              <span className="font-semibold">{result_data.coords.accuracy.toFixed(1)}m</span>
+            </div>
+          )}
+        </div>
 
         {/* Extras Section - Collapsible if needed */}
         {result_data.extras && Object.keys(result_data.extras).length > 1 && (

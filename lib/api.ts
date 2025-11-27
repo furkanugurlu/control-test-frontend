@@ -45,6 +45,20 @@ export async function deleteLocation(id: number): Promise<{
   return response.json();
 }
 
+export async function deleteAllLocations(): Promise<{
+  success: boolean;
+  message?: string;
+}> {
+  const response = await fetch(`${API_BASE_URL}/api/location`, {
+    method: 'DELETE',
+    cache: 'no-store',
+  });
+  if (!response.ok) {
+    throw new Error(`Failed to delete all locations: ${response.statusText}`);
+  }
+  return response.json();
+}
+
 export async function getHealth(): Promise<HealthResponse> {
   const response = await fetch(`${API_BASE_URL}/health`, {
     cache: 'no-store',

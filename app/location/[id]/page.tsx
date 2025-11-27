@@ -137,11 +137,28 @@ export default function LocationDetailPage() {
               <MapPin className="w-5 h-5 text-blue-500" />
               Konum Bilgileri
             </h2>
-            {result_data.latitude && result_data.longitude ? (
-              <CoordinateDisplay
-                latitude={result_data.latitude}
-                longitude={result_data.longitude}
-              />
+            {result_data.coords?.latitude && result_data.coords?.longitude ? (
+              <div>
+                <CoordinateDisplay
+                  latitude={result_data.coords.latitude}
+                  longitude={result_data.coords.longitude}
+                />
+                {result_data.coords.accuracy && (
+                  <div className="mt-2 text-sm text-gray-600">
+                    Doğruluk: {result_data.coords.accuracy.toFixed(2)}m
+                  </div>
+                )}
+                {result_data.coords.altitude !== undefined && (
+                  <div className="mt-1 text-sm text-gray-600">
+                    Yükseklik: {result_data.coords.altitude.toFixed(2)}m
+                  </div>
+                )}
+                {result_data.coords.speed !== undefined && result_data.coords.speed >= 0 && (
+                  <div className="mt-1 text-sm text-gray-600">
+                    Hız: {result_data.coords.speed.toFixed(2)} m/s
+                  </div>
+                )}
+              </div>
             ) : (
               <div className="text-gray-400 italic">Koordinat bilgisi yok</div>
             )}
@@ -158,6 +175,95 @@ export default function LocationDetailPage() {
               </div>
             )}
           </section>
+
+          {/* Additional Information */}
+          {(result_data.battery || result_data.activity || result_data.odometer !== undefined || result_data.is_moving !== undefined || result_data.event) && (
+            <section className="mb-8">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">Ek Bilgiler</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {result_data.battery && (
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <h3 className="font-semibold text-gray-700 mb-2">Batarya</h3>
+                    <div className="space-y-1 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Seviye:</span>
+                        <span className="font-medium">
+                          {result_data.battery.level !== undefined
+                            ? `${(result_data.battery.level * 100).toFixed(0)}%`
+                            : 'N/A'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Şarj Durumu:</span>
+                        <span className="font-medium">
+                          {result_data.battery.is_charging ? 'Şarj Oluyor' : 'Şarj Olmuyor'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {result_data.activity && (
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <h3 className="font-semibold text-gray-700 mb-2">Aktivite</h3>
+                    <div className="space-y-1 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Tip:</span>
+                        <span className="font-medium capitalize">{result_data.activity.type || 'N/A'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Güven:</span>
+                        <span className="font-medium">
+                          {result_data.activity.confidence !== undefined
+                            ? `${result_data.activity.confidence}%`
+                            : 'N/A'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {result_data.odometer !== undefined && (
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <h3 className="font-semibold text-gray-700 mb-2">Odometer</h3>
+                    <div className="text-sm">
+                      <span className="text-gray-600">Mesafe: </span>
+                      <span className="font-medium">{result_data.odometer.toFixed(2)} km</span>
+                    </div>
+                  </div>
+                )}
+
+                {result_data.is_moving !== undefined && (
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <h3 className="font-semibold text-gray-700 mb-2">Hareket Durumu</h3>
+                    <div className="text-sm">
+                      <span className={`font-medium ${result_data.is_moving ? 'text-green-600' : 'text-gray-600'}`}>
+                        {result_data.is_moving ? 'Hareket Ediyor' : 'Hareketsiz'}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {result_data.event && (
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <h3 className="font-semibold text-gray-700 mb-2">Olay</h3>
+                    <div className="text-sm">
+                      <span className="font-medium capitalize">{result_data.event}</span>
+                    </div>
+                  </div>
+                )}
+
+                {result_data.timestamp && (
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <h3 className="font-semibold text-gray-700 mb-2">Zaman Damgası</h3>
+                    <div className="text-sm text-gray-600">
+                      {new Date(result_data.timestamp).toLocaleString('tr-TR')}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </section>
+          )}
 
           {/* Raw Data */}
           <section>

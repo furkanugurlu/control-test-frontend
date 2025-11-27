@@ -20,10 +20,8 @@ export function ServerStatus() {
       }
     };
 
+    // Only check once on mount
     checkHealth();
-    const interval = setInterval(checkHealth, 30000); // Check every 30 seconds
-
-    return () => clearInterval(interval);
   }, []);
 
   return (
