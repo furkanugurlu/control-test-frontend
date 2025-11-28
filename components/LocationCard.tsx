@@ -105,8 +105,57 @@ export function LocationCard({ record, onDelete }: LocationCardProps) {
           )}
         </div>
 
-        {/* Extras Section - Collapsible if needed */}
-        {result_data.extras && Object.keys(result_data.extras).length > 1 && (
+        {/* Hits Section - Show only top 2 strongest signals */}
+        {result_data.extras?.hits && result_data.extras.hits.length > 0 && (() => {
+          // Sort by RSSI (highest = strongest signal, since RSSI is negative)
+          const sortedHits = [...result_data.extras.hits].sort((a, b) => b.rssi - a.rssi);
+          const topHits = sortedHits.slice(0, 2);
+          
+          return (
+            <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <h4 className="text-sm font-semibold text-gray-700 mb-3">
+                En Güçlü Sinyaller {result_data.extras.hits.length > 2 && `(${result_data.extras.hits.length} cihazdan ilk 2)`}
+              </h4>
+              <div className="space-y-2">
+                {topHits.map((hit, index) => (
+                  <div
+                    key={hit.id || index}
+                    className="flex items-center justify-between p-2 bg-white rounded border border-gray-200 hover:border-gray-300 transition-colors"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs font-medium text-gray-900 truncate">
+                        {hit.name || 'İsimsiz Cihaz'}
+                      </div>
+                      <div className="text-xs text-gray-500 font-mono truncate">
+                        {hit.id}
+                      </div>
+                    </div>
+                    <div className="ml-3 flex items-center gap-2">
+                      <div className="text-right">
+                        <div className="text-xs font-semibold text-gray-700">
+                          {hit.rssi} dBm
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {hit.rssi >= -50 ? 'Güçlü' : hit.rssi >= -70 ? 'Orta' : 'Zayıf'}
+                        </div>
+                      </div>
+                      <div className={`w-2 h-2 rounded-full ${
+                        hit.rssi >= -50 ? 'bg-green-500' :
+                        hit.rssi >= -70 ? 'bg-yellow-500' : 'bg-red-500'
+                      }`} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* Extras Section - Collapsible for other extras */}
+        {result_data.extras && 
+         Object.keys(result_data.extras).filter(
+           key => key !== 'nearbyTeltonika' && key !== 'hits'
+         ).length > 0 && (
           <details className="mt-2">
             <summary className="text-sm text-gray-600 cursor-pointer hover:text-gray-800">
               Diğer bilgiler
@@ -116,7 +165,7 @@ export function LocationCard({ record, onDelete }: LocationCardProps) {
                 {JSON.stringify(
                   Object.fromEntries(
                     Object.entries(result_data.extras).filter(
-                      ([key]) => key !== 'nearbyTeltonika'
+                      ([key]) => key !== 'nearbyTeltonika' && key !== 'hits'
                     )
                   ),
                   null,

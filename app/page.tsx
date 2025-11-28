@@ -99,7 +99,13 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header totalRecords={pagination.total} />
+      <Header 
+        totalRecords={pagination.total}
+        onDeleteAll={handleDeleteAll}
+        isDeletingAll={isDeletingAll}
+        showDeleteAllConfirm={showDeleteAllConfirm}
+        onShowDeleteAllConfirm={setShowDeleteAllConfirm}
+      />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Filters Section */}

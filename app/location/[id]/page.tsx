@@ -176,6 +176,50 @@ export default function LocationDetailPage() {
             )}
           </section>
 
+          {/* Hits Section - Show all hits */}
+          {result_data.extras?.hits && result_data.extras.hits.length > 0 && (
+            <section className="mb-8">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                Yakındaki Tüm Cihazlar ({result_data.extras.hits.length})
+              </h2>
+              <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                <div className="space-y-2">
+                  {[...result_data.extras.hits]
+                    .sort((a, b) => b.rssi - a.rssi) // Sort by RSSI (highest = strongest)
+                    .map((hit, index) => (
+                      <div
+                        key={hit.id || index}
+                        className="flex items-center justify-between p-3 bg-white rounded border border-gray-200 hover:border-gray-300 transition-colors"
+                      >
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-medium text-gray-900 truncate">
+                            {hit.name || 'İsimsiz Cihaz'}
+                          </div>
+                          <div className="text-xs text-gray-500 font-mono truncate mt-1">
+                            {hit.id}
+                          </div>
+                        </div>
+                        <div className="ml-4 flex items-center gap-3">
+                          <div className="text-right">
+                            <div className="text-sm font-semibold text-gray-700">
+                              {hit.rssi} dBm
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              {hit.rssi >= -50 ? 'Güçlü' : hit.rssi >= -70 ? 'Orta' : 'Zayıf'}
+                            </div>
+                          </div>
+                          <div className={`w-3 h-3 rounded-full ${
+                            hit.rssi >= -50 ? 'bg-green-500' :
+                            hit.rssi >= -70 ? 'bg-yellow-500' : 'bg-red-500'
+                          }`} />
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            </section>
+          )}
+
           {/* Additional Information */}
           {(result_data.battery || result_data.activity || result_data.odometer !== undefined || result_data.is_moving !== undefined || result_data.event) && (
             <section className="mb-8">
