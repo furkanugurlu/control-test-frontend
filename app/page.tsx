@@ -2,14 +2,16 @@
 
 import { useEffect, useState } from 'react';
 import { Header } from '@/components/Header';
-import { LocationGrid } from '@/components/LocationGrid';
+import { DeviceGrid } from '@/components/DeviceGrid';
 import { Pagination } from '@/components/Pagination';
-import { getLocations, deleteLocation, deleteAllLocations } from '@/lib/api';
-import { LocationRecord } from '@/lib/types';
-import { RefreshCw, Trash2, Loader2, AlertTriangle } from 'lucide-react';
+import { getLocations } from '@/lib/api';
+import { LocationRecord, DeviceGroup } from '@/lib/types';
+import { groupByDeviceId } from '@/lib/utils';
+import { RefreshCw } from 'lucide-react';
 
 export default function Home() {
   const [records, setRecords] = useState<LocationRecord[]>([]);
+  const [devices, setDevices] = useState<DeviceGroup[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [limit, setLimit] = useState(100);
@@ -21,8 +23,6 @@ export default function Home() {
     hasMore: false,
   });
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
-  const [isDeletingAll, setIsDeletingAll] = useState(false);
-  const [showDeleteAllConfirm, setShowDeleteAllConfirm] = useState(false);
 
   const fetchLocations = async () => {
     setLoading(true);
@@ -31,6 +31,11 @@ export default function Home() {
       const response = await getLocations(limit, offset);
       setRecords(response.data);
       setPagination(response.pagination);
+
+      // Group records by deviceId
+      const groupedDevices = groupByDeviceId(response.data);
+      setDevices(groupedDevices);
+
       setLastUpdate(new Date());
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Veriler yüklenirken bir hata oluştu');
@@ -58,56 +63,29 @@ export default function Home() {
     fetchLocations();
   };
 
-  const handleDelete = async (id: number) => {
-    try {
-      await deleteLocation(id);
-      // Remove the deleted record from the list immediately for better UX
-      setRecords((prev) => prev.filter((record) => record.id !== id));
-      // Update pagination total
-      setPagination((prev) => ({
-        ...prev,
-        total: Math.max(0, prev.total - 1),
-      }));
-    } catch (error) {
-      console.error('Error deleting location:', error);
-      alert(error instanceof Error ? error.message : 'Kayıt silinirken bir hata oluştu');
-      // Refresh on error to sync state
-      fetchLocations();
-    }
-  };
-
-  const handleDeleteAll = async () => {
-    setIsDeletingAll(true);
-    try {
-      await deleteAllLocations();
-      setShowDeleteAllConfirm(false);
-      // Clear all records
-      setRecords([]);
-      setPagination((prev) => ({
-        ...prev,
-        total: 0,
-      }));
-      // Refresh to get updated state
-      fetchLocations();
-    } catch (error) {
-      console.error('Error deleting all locations:', error);
-      alert(error instanceof Error ? error.message : 'Tüm kayıtlar silinirken bir hata oluştu');
-    } finally {
-      setIsDeletingAll(false);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header 
-        totalRecords={pagination.total}
-        onDeleteAll={handleDeleteAll}
-        isDeletingAll={isDeletingAll}
-        showDeleteAllConfirm={showDeleteAllConfirm}
-        onShowDeleteAllConfirm={setShowDeleteAllConfirm}
-      />
+      <Header totalRecords={pagination.total} />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Stats Section */}
+        <div className="mb-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="bg-white rounded-lg shadow p-4">
+            <p className="text-sm text-gray-600">Toplam Cihaz</p>
+            <p className="text-2xl font-bold text-gray-900">{devices.length}</p>
+          </div>
+          <div className="bg-white rounded-lg shadow p-4">
+            <p className="text-sm text-gray-600">Toplam Kayıt</p>
+            <p className="text-2xl font-bold text-gray-900">{pagination.total}</p>
+          </div>
+          <div className="bg-white rounded-lg shadow p-4">
+            <p className="text-sm text-gray-600">Ortalama Kayıt/Cihaz</p>
+            <p className="text-2xl font-bold text-gray-900">
+              {devices.length > 0 ? Math.round(pagination.total / devices.length) : 0}
+            </p>
+          </div>
+        </div>
+
         {/* Filters Section */}
         <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div className="flex items-center gap-4">
@@ -142,59 +120,15 @@ export default function Home() {
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
               Yenile
             </button>
-            {pagination.total > 0 && (
-              <>
-                {!showDeleteAllConfirm ? (
-                  <button
-                    onClick={() => setShowDeleteAllConfirm(true)}
-                    disabled={loading || isDeletingAll}
-                    className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
-                    aria-label="Tümünü sil"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                    Tümünü Sil
-                  </button>
-                ) : (
-                  <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-md p-2">
-                    <AlertTriangle className="w-4 h-4 text-red-600 shrink-0" />
-                    <span className="text-xs text-red-700 font-medium">
-                      {pagination.total} kayıt silinecek. Emin misiniz?
-                    </span>
-                    <button
-                      onClick={handleDeleteAll}
-                      disabled={isDeletingAll}
-                      className="px-3 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1"
-                    >
-                      {isDeletingAll ? (
-                        <>
-                          <Loader2 className="w-3 h-3 animate-spin" />
-                          Siliniyor...
-                        </>
-                      ) : (
-                        'Evet, Sil'
-                      )}
-                    </button>
-                    <button
-                      onClick={() => setShowDeleteAllConfirm(false)}
-                      disabled={isDeletingAll}
-                      className="px-3 py-1 bg-gray-200 text-gray-700 rounded text-xs hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                      İptal
-                    </button>
-                  </div>
-                )}
-              </>
-            )}
           </div>
         </div>
 
-        {/* Location Grid */}
-        <LocationGrid
-          records={records}
+        {/* Device Grid */}
+        <DeviceGrid
+          devices={devices}
           loading={loading}
           error={error}
           onRetry={fetchLocations}
-          onDelete={handleDelete}
         />
 
         {/* Pagination */}

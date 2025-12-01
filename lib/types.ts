@@ -1,6 +1,7 @@
 export interface LocationRecord {
   id: number;
   result_data: {
+    device_id?: string;
     age?: number;
     uuid?: string;
     event?: string;
@@ -65,3 +66,9 @@ export interface HealthResponse {
   timestamp: string;
 }
 
+export interface DeviceGroup {
+  deviceId: string;
+  recordCount: number;
+  latestRecord: LocationRecord;
+  records: LocationRecord[];
+}

@@ -64,3 +64,32 @@ export function calculateTotalPages(total: number, limit: number): number {
   return Math.ceil(total / limit);
 }
 
+export function groupByDeviceId(records: import('./types').LocationRecord[]): import('./types').DeviceGroup[] {
+  const grouped = new Map<string, import('./types').LocationRecord[]>();
+
+  // Group records by device_id
+  records.forEach(record => {
+    const deviceId = record.result_data.device_id || 'unknown';
+    if (!grouped.has(deviceId)) {
+      grouped.set(deviceId, []);
+    }
+    grouped.get(deviceId)!.push(record);
+  });
+
+  // Convert to DeviceGroup array and sort by latest record
+  return Array.from(grouped.entries()).map(([deviceId, deviceRecords]) => {
+    // Sort records by created_at descending (newest first)
+    const sortedRecords = deviceRecords.sort((a, b) =>
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
+
+    return {
+      deviceId,
+      recordCount: deviceRecords.length,
+      latestRecord: sortedRecords[0],
+      records: sortedRecords,
+    };
+  }).sort((a, b) =>
+    new Date(b.latestRecord.created_at).getTime() - new Date(a.latestRecord.created_at).getTime()
+  );
+}
