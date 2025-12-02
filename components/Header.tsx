@@ -1,36 +1,13 @@
 'use client';
 
-import { useState } from 'react';
 import { ServerStatus } from './ServerStatus';
-import { MapPin, Trash2 } from 'lucide-react';
-import { deleteAllLocations } from '@/lib/api';
-import { useRouter } from 'next/navigation';
+import { MapPin } from 'lucide-react';
 
 interface HeaderProps {
   totalRecords?: number;
 }
 
 export function Header({ totalRecords }: HeaderProps) {
-  const router = useRouter();
-  const [isDeleting, setIsDeleting] = useState(false);
-
-  const handleDeleteAll = async () => {
-    if (!confirm('Tüm kayıtları silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.')) {
-      return;
-    }
-
-    setIsDeleting(true);
-    try {
-      await deleteAllLocations();
-      alert('Tüm kayıtlar başarıyla silindi.');
-      router.refresh();
-    } catch (error) {
-      alert('Kayıtlar silinirken bir hata oluştu: ' + (error instanceof Error ? error.message : 'Bilinmeyen hata'));
-      console.error('Error deleting all locations:', error);
-    } finally {
-      setIsDeleting(false);
-    }
-  };
 
   return (
     <header className="bg-white shadow-sm border-b border-gray-200">
@@ -51,15 +28,6 @@ export function Header({ totalRecords }: HeaderProps) {
                 <span className="font-semibold">{totalRecords.toLocaleString('tr-TR')}</span> kayıt
               </div>
             )}
-            <button
-              onClick={handleDeleteAll}
-              disabled={isDeleting}
-              className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
-              aria-label="Tüm kayıtları sil"
-            >
-              <Trash2 className="w-4 h-4" />
-              {isDeleting ? 'Siliniyor...' : 'Tümünü Sil'}
-            </button>
             <ServerStatus />
           </div>
         </div>
