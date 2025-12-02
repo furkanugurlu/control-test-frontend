@@ -25,11 +25,12 @@ export interface LocationRecord {
         name: string;
         rssi: number;
       } | null;
-      hits?: {
-        id: string;
-        name: string | null;
-        rssi: number;
-      };
+      hits?: Array<{
+        id?: string;
+        name?: string | null;
+        rssi?: number;
+        type?: string;
+      }>;
       [key: string]: any;
     };
     battery?: {

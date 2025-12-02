@@ -105,51 +105,66 @@ export function LocationCard({ record, onDelete }: LocationCardProps) {
           )}
         </div>
 
-        {/* Hits Section - Show only top 2 strongest signals */}
-        {result_data.extras?.hits && result_data.extras.hits.length > 0 && (() => {
-          // Sort by RSSI (highest = strongest signal, since RSSI is negative)
-          const sortedHits = [...result_data.extras.hits].sort((a, b) => b.rssi - a.rssi);
-          const topHits = sortedHits.slice(0, 2);
-          
-          return (
-            <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-              <h4 className="text-sm font-semibold text-gray-700 mb-3">
-                En Güçlü Sinyaller {result_data.extras.hits.length > 2 && `(${result_data.extras.hits.length} cihazdan ilk 2)`}
-              </h4>
-              <div className="space-y-2">
-                {topHits.map((hit, index) => (
+        {/* Hits Section - BLE Devices */}
+        {result_data.extras?.hits && result_data.extras.hits.length > 0 && (
+          <div className="mt-4 p-4 bg-indigo-50 rounded-lg border border-indigo-200">
+            <h4 className="text-sm font-semibold text-indigo-800 mb-3 flex items-center gap-2">
+              <span>🔵 BLE Cihazları</span>
+              <span className="text-xs px-2 py-0.5 bg-indigo-200 text-indigo-700 rounded-full font-medium">
+                {result_data.extras.hits.length}
+              </span>
+            </h4>
+            <div className="space-y-2">
+              {result_data.extras.hits
+                .sort((a, b) => (b.rssi || -100) - (a.rssi || -100))
+                .slice(0, 3)
+                .map((hit, index) => (
                   <div
                     key={hit.id || index}
-                    className="flex items-center justify-between p-2 bg-white rounded border border-gray-200 hover:border-gray-300 transition-colors"
+                    className="flex items-center justify-between p-2 bg-white rounded border border-indigo-100 hover:border-indigo-300 transition-colors"
                   >
                     <div className="flex-1 min-w-0">
-                      <div className="text-xs font-medium text-gray-900 truncate">
-                        {hit.name || 'İsimsiz Cihaz'}
+                      <div className="text-xs font-medium text-gray-900 truncate flex items-center gap-1">
+                        {hit.name || 'İsimsiz BLE Cihazı'}
+                        {hit.type && (
+                          <span className="text-xs px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded text-[10px]">
+                            {hit.type}
+                          </span>
+                        )}
                       </div>
-                      <div className="text-xs text-gray-500 font-mono truncate">
-                        {hit.id}
+                      <div className="text-xs text-gray-500 font-mono truncate mt-0.5">
+                        {hit.id || 'ID Yok'}
                       </div>
                     </div>
                     <div className="ml-3 flex items-center gap-2">
                       <div className="text-right">
                         <div className="text-xs font-semibold text-gray-700">
-                          {hit.rssi} dBm
+                          {hit.rssi !== undefined ? `${hit.rssi} dBm` : 'N/A'}
                         </div>
-                        <div className="text-xs text-gray-500">
-                          {hit.rssi >= -50 ? 'Güçlü' : hit.rssi >= -70 ? 'Orta' : 'Zayıf'}
-                        </div>
+                        {hit.rssi !== undefined && (
+                          <div className="text-xs text-gray-500">
+                            {hit.rssi >= -50 ? 'Güçlü' : 
+                             hit.rssi >= -70 ? 'Orta' : 'Zayıf'}
+                          </div>
+                        )}
                       </div>
-                      <div className={`w-2 h-2 rounded-full ${
-                        hit.rssi >= -50 ? 'bg-green-500' :
-                        hit.rssi >= -70 ? 'bg-yellow-500' : 'bg-red-500'
-                      }`} />
+                      {hit.rssi !== undefined && (
+                        <div className={`w-2 h-2 rounded-full ${
+                          hit.rssi >= -50 ? 'bg-green-500' :
+                          hit.rssi >= -70 ? 'bg-yellow-500' : 'bg-red-500'
+                        }`} />
+                      )}
                     </div>
                   </div>
                 ))}
-              </div>
+              {result_data.extras.hits.length > 3 && (
+                <div className="text-xs text-gray-500 text-center pt-1">
+                  +{result_data.extras.hits.length - 3} cihaz daha
+                </div>
+              )}
             </div>
-          );
-        })()}
+          </div>
+        )}
 
         {/* Extras Section - Collapsible for other extras */}
         {result_data.extras && 
