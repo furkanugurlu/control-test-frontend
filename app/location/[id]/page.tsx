@@ -349,63 +349,54 @@ export default function LocationDetailPage() {
           </div>
         </div>
 
-        {/* Nearby Devices Section */}
-        {result_data.extras?.hits && result_data.extras.hits.length > 0 && (
+        {/* Nearby Device Section */}
+        {result_data.extras?.hits && (
           <div className="bg-white rounded-xl shadow-lg p-6 mb-6 hover:shadow-xl transition-shadow">
             <div className="flex items-center gap-2 mb-6">
               <div className="p-2 bg-indigo-100 rounded-lg">
                 <Zap className="w-5 h-5 text-indigo-600" />
               </div>
               <h2 className="text-xl font-bold text-gray-900">
-                Yakındaki Cihazlar
+                Yakındaki Cihaz
               </h2>
-              <span className="ml-2 px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-sm font-semibold">
-                {result_data.extras.hits.length}
-              </span>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {[...result_data.extras.hits]
-                .sort((a, b) => b.rssi - a.rssi)
-                .map((hit, index) => (
-                  <div
-                    key={hit.id || index}
-                    className="relative p-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg border border-gray-200 hover:border-indigo-300 hover:shadow-md transition-all"
-                  >
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm font-bold text-gray-900 truncate">
-                          {hit.name || 'İsimsiz Cihaz'}
-                        </div>
-                        <div className="text-xs text-gray-500 font-mono truncate mt-1">
-                          {hit.id}
-                        </div>
-                      </div>
-                      <div className={`w-3 h-3 rounded-full ml-2 shrink-0 ${
-                        hit.rssi >= -50 ? 'bg-green-500 animate-pulse' :
-                        hit.rssi >= -70 ? 'bg-yellow-500' : 'bg-red-500'
-                      }`} />
+            <div className="max-w-md">
+              <div className="relative p-6 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg border border-gray-200 hover:border-indigo-300 hover:shadow-md transition-all">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex-1 min-w-0">
+                    <div className="text-lg font-bold text-gray-900 truncate">
+                      {result_data.extras.hits.name || 'İsimsiz Cihaz'}
                     </div>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="text-lg font-bold text-gray-900">
-                          {hit.rssi} dBm
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          {hit.rssi >= -50 ? 'Güçlü Sinyal' : hit.rssi >= -70 ? 'Orta Sinyal' : 'Zayıf Sinyal'}
-                        </div>
-                      </div>
-                      <div className="w-16 bg-gray-200 rounded-full h-2">
-                        <div 
-                          className={`h-2 rounded-full ${
-                            hit.rssi >= -50 ? 'bg-green-500' :
-                            hit.rssi >= -70 ? 'bg-yellow-500' : 'bg-red-500'
-                          }`}
-                          style={{ width: `${Math.min(100, Math.max(0, (hit.rssi + 100)))}%` }}
-                        />
-                      </div>
+                    <div className="text-sm text-gray-500 font-mono truncate mt-1">
+                      {result_data.extras.hits.id}
                     </div>
                   </div>
-                ))}
+                  <div className={`w-4 h-4 rounded-full ml-2 shrink-0 ${
+                    result_data.extras.hits.rssi >= -50 ? 'bg-green-500 animate-pulse' :
+                    result_data.extras.hits.rssi >= -70 ? 'bg-yellow-500' : 'bg-red-500'
+                  }`} />
+                </div>
+                <div className="space-y-3">
+                  <div>
+                    <div className="text-3xl font-bold text-gray-900">
+                      {result_data.extras.hits.rssi} dBm
+                    </div>
+                    <div className="text-sm text-gray-500 mt-1">
+                      {result_data.extras.hits.rssi >= -50 ? 'Güçlü Sinyal' : 
+                       result_data.extras.hits.rssi >= -70 ? 'Orta Sinyal' : 'Zayıf Sinyal'}
+                    </div>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-3">
+                    <div 
+                      className={`h-3 rounded-full transition-all ${
+                        result_data.extras.hits.rssi >= -50 ? 'bg-green-500' :
+                        result_data.extras.hits.rssi >= -70 ? 'bg-yellow-500' : 'bg-red-500'
+                      }`}
+                      style={{ width: `${Math.min(100, Math.max(0, (result_data.extras.hits.rssi + 100)))}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         )}

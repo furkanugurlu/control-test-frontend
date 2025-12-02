@@ -2,12 +2,9 @@ import { ApiResponse, HealthResponse, LocationRecord } from './types';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
-export async function getLocations(
-  limit = 100,
-  offset = 0
-): Promise<ApiResponse> {
+export async function getLocations(): Promise<ApiResponse> {
   const response = await fetch(
-    `${API_BASE_URL}/api/location?limit=${limit}&offset=${offset}`,
+    `${API_BASE_URL}/api/location?limit=1000`,
     {
       cache: 'no-store', // Ensure fresh data
     }
