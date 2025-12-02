@@ -20,6 +20,10 @@ export default function DeviceDetailPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+    
+    // Pagination states
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 12;
 
     const fetchDeviceRecords = async () => {
         setLoading(true);
@@ -42,6 +46,7 @@ export default function DeviceDetailPage() {
 
             setFilteredRecords(deviceRecords);
             setLastUpdate(new Date());
+            setCurrentPage(1); // Reset to first page on refresh
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Veriler yüklenirken bir hata oluştu');
             console.error('Error fetching device records:', err);
@@ -71,6 +76,19 @@ export default function DeviceDetailPage() {
             fetchDeviceRecords();
         }
     };
+
+    const handlePageChange = (newOffset: number) => {
+        const newPage = Math.floor(newOffset / itemsPerPage) + 1;
+        setCurrentPage(newPage);
+        // Scroll to top of the page when page changes
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    // Pagination calculations
+    const totalRecords = filteredRecords.length;
+    const totalPages = Math.ceil(totalRecords / itemsPerPage);
+    const offset = (currentPage - 1) * itemsPerPage;
+    const currentRecords = filteredRecords.slice(offset, offset + itemsPerPage);
 
     const latestRecord = filteredRecords[0];
 
@@ -188,16 +206,35 @@ export default function DeviceDetailPage() {
 
                 {/* Records Grid */}
                 <div className="mb-6">
-                    <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                        Tüm Kayıtlar ({filteredRecords.length})
-                    </h2>
+                    <div className="flex items-center justify-between mb-4">
+                        <h2 className="text-lg font-semibold text-gray-900">
+                            Tüm Kayıtlar ({filteredRecords.length})
+                        </h2>
+                        {totalPages > 1 && !loading && (
+                            <span className="text-sm text-gray-500">
+                                Sayfa {currentPage} / {totalPages}
+                            </span>
+                        )}
+                    </div>
                     <LocationGrid
-                        records={filteredRecords}
+                        records={currentRecords}
                         loading={loading}
                         error={error}
                         onRetry={fetchDeviceRecords}
                         onDelete={handleDelete}
                     />
+                    
+                    {/* Pagination */}
+                    {totalPages > 1 && !loading && !error && (
+                        <div className="mt-6">
+                            <Pagination
+                                total={totalRecords}
+                                limit={itemsPerPage}
+                                offset={offset}
+                                onPageChange={handlePageChange}
+                            />
+                        </div>
+                    )}
                 </div>
             </main>
         </div>
